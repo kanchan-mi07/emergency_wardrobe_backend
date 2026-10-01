@@ -1,0 +1,38 @@
+# ==========================================
+# Environment & Secrets (NEVER COMMIT THESE)
+# ==========================================
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Java / Maven Output Directories
+# ==========================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# ==========================================
+# IDE & Editor Specific Files
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+.idea_modules/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# Logs & Operating System
+*.log
+.DS_Store
+Thumbs.db
