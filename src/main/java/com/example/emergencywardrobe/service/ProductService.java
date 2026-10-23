@@ -60,13 +60,16 @@ public class ProductService {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
     }
+    /**
+     * Looks up a relevant photo for products that have no image or only a random placeholder.
+     * With replaceAll=true every product is re-searched.
+     */
     @Transactional
     public int fillImages(boolean replaceAll) {
         int updated = 0;
         for (Product p : productRepository.findAll()) {
-            boolean missing = p.getImageUrl() == null || p.getImageUrl().isBlank();
-            if (replaceAll || missing) {
-                var url = imageSearchService.findImageUrl(p.getName());
+            if (replaceAll || ImageSearchService.isPlaceholder(p.getImageUrl())) {
+                var url = imageSearchService.findImageUrl(p.getName(), p.getCategory().getName());
                 if (url.isPresent()) {
                     p.setImageUrl(url.get());
                     updated++;
@@ -100,7 +103,7 @@ public class ProductService {
         if (imageUrl == null || imageUrl.isBlank()) {
             imageUrl = (product.getImageUrl() != null && !product.getImageUrl().isBlank())
                     ? product.getImageUrl()
-                    : imageSearchService.findImageUrl(request.getName()).orElse(null);
+                    : imageSearchService.findImageUrl(request.getName(), category.getName()).orElse(null);
         }
         product.setImageUrl(imageUrl);
         product.setStock(request.getStock());

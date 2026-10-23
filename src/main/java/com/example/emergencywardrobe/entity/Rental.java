@@ -53,6 +53,14 @@ public class Rental {
     @Column(nullable = false)
     private RentalStatus status = RentalStatus.PENDING;
 
+    // Nullable on purpose: rentals created before payments existed have no value here (treated as PENDING).
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status")
+    private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
+    @Column(name = "razorpay_order_id")
+    private String razorpayOrderId;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

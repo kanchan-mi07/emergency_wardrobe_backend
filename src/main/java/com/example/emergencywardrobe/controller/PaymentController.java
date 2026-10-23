@@ -1,6 +1,8 @@
 package com.example.emergencywardrobe.controller;
 
 import com.example.emergencywardrobe.dto.CreatePaymentRequest;
+import com.example.emergencywardrobe.dto.CreateRentalPaymentRequest;
+import com.example.emergencywardrobe.dto.VerifyRentalPaymentRequest;
 import com.example.emergencywardrobe.dto.VerifyPaymentRequest;
 import com.example.emergencywardrobe.service.PaymentService;
 import jakarta.validation.Valid;
@@ -34,6 +36,27 @@ public class PaymentController {
         paymentService.verifyAndConfirmPayment(
                 authentication.getName(),
                 request.getOrderId(),
+                request.getRazorpayOrderId(),
+                request.getRazorpayPaymentId(),
+                request.getRazorpaySignature()
+        );
+        return Map.of("status", "success");
+    }
+
+    // ---- rentals ----
+
+    @PostMapping("/rental/create")
+    public Map<String, Object> createRentalPayment(Authentication authentication,
+                                                   @Valid @RequestBody CreateRentalPaymentRequest request) {
+        return paymentService.createRentalPayment(authentication.getName(), request.getRentalId());
+    }
+
+    @PostMapping("/rental/verify")
+    public Map<String, String> verifyRentalPayment(Authentication authentication,
+                                                   @Valid @RequestBody VerifyRentalPaymentRequest request) {
+        paymentService.verifyAndConfirmRentalPayment(
+                authentication.getName(),
+                request.getRentalId(),
                 request.getRazorpayOrderId(),
                 request.getRazorpayPaymentId(),
                 request.getRazorpaySignature()

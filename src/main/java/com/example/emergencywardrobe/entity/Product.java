@@ -42,7 +42,7 @@ public class Product {
     @Column(name = "security_deposit", precision = 10, scale = 2)
     private BigDecimal securityDeposit;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(nullable = false)

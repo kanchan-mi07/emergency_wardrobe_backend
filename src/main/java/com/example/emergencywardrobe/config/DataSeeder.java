@@ -7,12 +7,14 @@ import com.example.emergencywardrobe.repository.ProductRepository;
 import com.example.emergencywardrobe.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
 @Component
+@Order(1)
 public class DataSeeder implements CommandLineRunner {
 
     private final CategoryRepository categoryRepository;
@@ -176,24 +178,48 @@ public class DataSeeder implements CommandLineRunner {
         return productRepository.save(product);
     }
 
+    // Images are intentionally left empty here. ProductImageBackfill looks up a photo that
+    // matches each product's name right after seeding (and the UI shows a themed fallback).
     private String imageUrl(String seed) {
-        return "https://picsum.photos/seed/" + seed + "/500/625";
+        return null;
     }
 
     private void seedAdmin() {
-        if (userRepository.existsByEmail(adminEmail)) {
+        // Clean .env quirks: stray spaces and wrapping quotes (ADMIN_PASSWORD="abc") are NOT removed by
+        // Spring's .properties parser, so they would silently become part of the password.
+        String email = clean(adminEmail);
+        String password = clean(adminPassword);
+        System.out.println("Admin login configured -> email: " + email + " | password length: " + password.length()
+                + " characters (log in with exactly these values from your .env)");
+
+        var existing = userRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            User admin = existing.get();
+            boolean changed = false;
+            if (admin.getRole() != Role.ADMIN) {
+                admin.setRole(Role.ADMIN);
+                changed = true;
+            }
+            if (!passwordEncoder.matches(password, admin.getPassword())) {
+                admin.setPassword(passwordEncoder.encode(password));
+                changed = true;
+            }
+            if (changed) {
+                userRepository.save(admin);
+                System.out.println("Admin account " + email + " updated to match ADMIN_EMAIL / ADMIN_PASSWORD.");
+            }
             return;
         }
 
-        User admin = new User(
-                "Admin",
-                adminEmail,
-                passwordEncoder.encode(adminPassword),
-                Role.ADMIN
-        );
-        userRepository.save(admin);
+        userRepository.save(new User("Admin", email, passwordEncoder.encode(password), Role.ADMIN));
+        System.out.println("Seeded admin account: " + email + " (use ADMIN_PASSWORD from your .env to log in)");
+    }
 
-        System.out.println("Seeded demo admin account: " + adminEmail
-                + " (change ADMIN_PASSWORD env var before deploying publicly)");
+    private static String clean(String value) {
+        String t = value == null ? "" : value.trim();
+        if (t.length() >= 2 && ((t.startsWith("\"") && t.endsWith("\"")) || (t.startsWith("'") && t.endsWith("'")))) {
+            t = t.substring(1, t.length() - 1).trim();
+        }
+        return t;
     }
 }

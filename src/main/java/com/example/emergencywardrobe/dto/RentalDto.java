@@ -1,5 +1,6 @@
 package com.example.emergencywardrobe.dto;
 
+import com.example.emergencywardrobe.entity.PaymentStatus;
 import com.example.emergencywardrobe.entity.Rental;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class RentalDto {
     private BigDecimal totalAmount;
     private String status;
     private LocalDateTime createdAt;
+    private String paymentStatus;
 
     public static RentalDto fromEntity(Rental rental) {
         long days = ChronoUnit.DAYS.between(rental.getStartDate(), rental.getEndDate());
@@ -41,7 +43,8 @@ public class RentalDto {
                 rental.getSecurityDeposit(),
                 total,
                 rental.getStatus().name(),
-                rental.getCreatedAt()
+                rental.getCreatedAt(),
+                rental.getPaymentStatus() == null ? PaymentStatus.PENDING.name() : rental.getPaymentStatus().name()
         );
     }
 }

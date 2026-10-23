@@ -10,8 +10,10 @@ import com.example.emergencywardrobe.exception.UserAlreadyExistsException;
 import com.example.emergencywardrobe.repository.UserRepository;
 import com.example.emergencywardrobe.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class AuthService {
 
@@ -44,9 +46,13 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
+                .orElseThrow(() -> {
+                    log.warn("Login failed for '{}': no account with this email", request.getEmail());
+                    return new InvalidCredentialsException("Invalid email or password");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.warn("Login failed for '{}': account exists but the password does not match", request.getEmail());
             throw new InvalidCredentialsException("Invalid email or password");
         }
 
